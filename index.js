@@ -3,22 +3,47 @@ const app = express();
 const port = 3001;
 
 const crypto = require("crypto");
-// Generate a 256-bit (32-byte) key in hexadecimal format
 const JWT_SECRET = crypto.randomBytes(32).toString("hex");
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const jwt = require("jsonwebtoken");
+
 const USERS = [{ username: "venkatesh", password: "manikandan" }];
 
 const QUESTIONS = [
   {
-    title: "Two states",
-    description: "Given an array , return the maximum of the array?",
+    title: "Two States",
+    description: "Given an array, return the maximum value of the array.",
     testCases: [
       {
-        input: "[1,2,3,4,5]",
+        input: "[1, 2, 3, 4, 5]",
         output: "5",
+      },
+    ],
+  },
+  {
+    title: "Reverse String",
+    description: "Given a string, return the string reversed.",
+    testCases: [
+      {
+        input: '"hello"',
+        output: '"olleh"',
+      },
+    ],
+  },
+  {
+    title: "Palindrome Check",
+    description: "Check if a given string is a palindrome.",
+    testCases: [
+      {
+        input: '"racecar"',
+        output: "true",
+      },
+      {
+        input: '"hello"',
+        output: "false",
       },
     ],
   },
@@ -27,8 +52,6 @@ const QUESTIONS = [
 const SUBMISSION = [];
 
 app.get("/signup", function (req, res) {
-  // Add logic to decode body
-  // body should have email and password
   res.send(`
     <h2>Signup Form</h2>
     <form action="/signup" method="POST">
@@ -44,45 +67,22 @@ app.get("/signup", function (req, res) {
         <input type="submit" value="Sign Up">
     </form>
     `);
-
-  //Store email and password (as is for now) in the USERS array above (only if the user with the given email doesnt exist)
-
-  // return back 200 status code to the client
 });
 
 app.post("/signup", function (req, res) {
   const { username, password, confirm_password } = req.body;
-
-  // Check if the username already exists
   const userExists = USERS.find((user) => user.username === username);
-
   if (userExists) {
     return res.status(400).send("User with this username already exists.");
   }
-
-  // Check if passwords match
   if (password !== confirm_password) {
     return res.status(400).send("Passwords do not match.");
   }
-
-  // Store the user (for demonstration purposes, storing as plain text is not secure)
   USERS.push({ username, password });
-
-  // Return success response
   res.status(200).send("Signup successful!");
 });
 
 app.get("/login", function (req, res) {
-  // Add logic to decode body
-  // body should have email and password
-
-  // Check if the user with the given email exists in the USERS array
-  // Also ensure that the password is the same
-
-  // If the password is the same, return back 200 status code to the client
-  // Also send back a token (any random string will do for now)
-  // If the password is not the same, return back 401 status code to the client
-
   res.send(`
     <h2>Login Form</h2>
     <form action="/login" method="POST">
@@ -122,9 +122,54 @@ app.post("/login", function (req, res) {
   res.status(200).json({ message: "Login successful!", token });
 });
 
-app.get("/questions", function (req, res) {
-  //return the user all the questions in the QUESTIONS array
-  res.send("Hello World from route 3!");
+app.get("/questions", (req, res) => {
+  let html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Coding Questions</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }
+        h1 { color: #333; }
+        h2 { color: #555; }
+        p { margin: 10px 0; }
+        pre { background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd; }
+        .question { margin-bottom: 20px; }
+        .test-case { margin-bottom: 15px; }
+      </style>
+    </head>
+    <body>
+      <h1>Coding Questions</h1>
+  `;
+
+  QUESTIONS.forEach((question) => {
+    html += `
+      <div class="question">
+        <h2>${question.title}</h2>
+        <p><strong>Description:</strong> ${question.description}</p>
+    `;
+
+    question.testCases.forEach((testCase, index) => {
+      html += `
+        <div class="test-case">
+          <h3>Test Case ${index + 1}</h3>
+          <p><strong>Input:</strong> <pre>${testCase.input}</pre></p>
+          <p><strong>Output:</strong> <pre>${testCase.output}</pre></p>
+        </div>
+      `;
+    });
+
+    html += "</div><hr>";
+  });
+
+  html += `
+    </body>
+    </html>
+  `;
+
+  res.send(html);
 });
 
 app.get("/submissions", function (req, res) {

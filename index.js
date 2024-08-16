@@ -1,11 +1,14 @@
 const express = require("express");
 const app = express();
 const port = 3001;
-app.use(express.urlencoded({ extended: true }));
 
-// For parsing application/json (if needed)
+const crypto = require("crypto");
+// Generate a 256-bit (32-byte) key in hexadecimal format
+const JWT_SECRET = crypto.randomBytes(32).toString("hex");
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+const jwt = require("jsonwebtoken");
 const USERS = [{ username: "venkatesh", password: "manikandan" }];
 
 const QUESTIONS = [
@@ -110,8 +113,13 @@ app.post("/login", function (req, res) {
     return res.status(400).send("Incorrect password.");
   }
 
-  // If the username and password are correct
-  res.status(200).send("Login successful!");
+  // Generate a token
+  const token = jwt.sign({ username: user.username }, JWT_SECRET, {
+    expiresIn: "1h",
+  });
+
+  // Send the token to the client
+  res.status(200).json({ message: "Login successful!", token });
 });
 
 app.get("/questions", function (req, res) {
